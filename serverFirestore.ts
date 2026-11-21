@@ -38,7 +38,45 @@ interface FirebaseAppletConfig {
 }
 
 const configPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
-const firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as FirebaseAppletConfig;
+const localFileConfig: Partial<FirebaseAppletConfig> = fs.existsSync(configPath)
+  ? (JSON.parse(fs.readFileSync(configPath, 'utf-8')) as Partial<FirebaseAppletConfig>)
+  : {};
+
+const firebaseConfig: FirebaseAppletConfig = {
+  projectId:
+    process.env.FIREBASE_PROJECT_ID ||
+    process.env.VITE_FIREBASE_PROJECT_ID ||
+    localFileConfig.projectId ||
+    '',
+  appId:
+    process.env.FIREBASE_APP_ID ||
+    process.env.VITE_FIREBASE_APP_ID ||
+    localFileConfig.appId ||
+    '',
+  apiKey:
+    process.env.FIREBASE_API_KEY ||
+    process.env.VITE_FIREBASE_API_KEY ||
+    localFileConfig.apiKey ||
+    '',
+  authDomain:
+    process.env.FIREBASE_AUTH_DOMAIN ||
+    process.env.VITE_FIREBASE_AUTH_DOMAIN ||
+    localFileConfig.authDomain ||
+    '',
+  firestoreDatabaseId:
+    process.env.FIREBASE_DATABASE_ID ||
+    process.env.VITE_FIREBASE_DATABASE_ID ||
+    localFileConfig.firestoreDatabaseId ||
+    '(default)',
+  storageBucket:
+    process.env.FIREBASE_STORAGE_BUCKET ||
+    process.env.VITE_FIREBASE_STORAGE_BUCKET ||
+    localFileConfig.storageBucket,
+  messagingSenderId:
+    process.env.FIREBASE_MESSAGING_SENDER_ID ||
+    process.env.VITE_FIREBASE_MESSAGING_SENDER_ID ||
+    localFileConfig.messagingSenderId,
+};
 
 const firebaseApp = initializeApp(firebaseConfig, 'dealtrend-server');
 export const serverDb = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);

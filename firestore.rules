@@ -1,0 +1,599 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================
+    // Hardened Global Helpers
+    // =========================================================
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidSha256(val) {
+      return val is string && val.matches('^[a-f0-9]{64}$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'nk4080294@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isNonEmptyString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isOptionalString(val, maxLen) {
+      return val is string && val.size() <= maxLen;
+    }
+
+    function isNonNegNumber(val) {
+      return (val is int || val is float) && val >= 0;
+    }
+
+    function isPosNumber(val) {
+      return (val is int || val is float) && val > 0;
+    }
+
+    function isValidImageList(imgs) {
+      return imgs is list && imgs.size() <= 12 && (imgs.size() == 0 || (imgs[0] is string && imgs[0].size() <= 500000));
+    }
+
+    function isValidReviewList(revs) {
+      return revs is list && revs.size() <= 20 && (
+        revs.size() == 0 || (
+          revs[0] is map
+          && revs[0].keys().hasAll(['id', 'reviewerName', 'rating', 'comment', 'dateLabel'])
+          && revs[0].keys().hasOnly(['id', 'reviewerName', 'rating', 'comment', 'dateLabel', 'verified', 'images'])
+          && isNonEmptyString(revs[0].id, 1, 64)
+          && isNonEmptyString(revs[0].reviewerName, 1, 80)
+          && (revs[0].rating is int || revs[0].rating is float) && revs[0].rating >= 1 && revs[0].rating <= 5
+          && isNonEmptyString(revs[0].comment, 1, 600)
+          && isNonEmptyString(revs[0].dateLabel, 1, 40)
+          && (!('verified' in revs[0]) || revs[0].verified is bool)
+          && (!('images' in revs[0]) || (
+            revs[0].images is list
+            && revs[0].images.size() <= 4
+            && (revs[0].images.size() == 0 || (revs[0].images[0] is string && revs[0].images[0].size() <= 250000))
+          ))
+        )
+      );
+    }
+
+    function isValidColorOptionList(opts) {
+      return opts is list && opts.size() <= 20 && (
+        opts.size() == 0 || (
+          opts[0] is map
+          && opts[0].keys().hasAll(['name'])
+          && opts[0].keys().hasOnly(['name', 'imageIndex'])
+          && isNonEmptyString(opts[0].name, 1, 60)
+          && (!('imageIndex' in opts[0]) || (
+            (opts[0].imageIndex is int || opts[0].imageIndex is float)
+            && opts[0].imageIndex >= 0
+            && opts[0].imageIndex <= 11
+          ))
+        )
+      );
+    }
+
+    function isValidSizeOptionList(sizes) {
+      return sizes is list && sizes.size() <= 20 && (
+        sizes.size() == 0 || isNonEmptyString(sizes[0], 1, 40)
+      );
+    }
+
+    // =========================================================
+    // Validation Blueprints (Anti-Update-Gap)
+    // =========================================================
+    function isValidPublicStore(data) {
+      return data.keys().hasAll([
+          'storeName', 'storeDescription', 'logoUrl', 'heroImageUrl', 'currencySymbol', 'announcementText',
+          'codEnabled', 'onlinePaymentEnabled', 'upiId', 'paymentGatewayName',
+          'paymentGatewayNote', 'freeShippingThreshold', 'shippingFee',
+          'supportPhone', 'supportEmail', 'supportAddress', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'storeName', 'storeDescription', 'logoUrl', 'heroImageUrl', 'currencySymbol', 'announcementText',
+          'codEnabled', 'onlinePaymentEnabled', 'upiId', 'paymentGatewayName',
+          'paymentGatewayNote', 'freeShippingThreshold', 'shippingFee',
+          'supportPhone', 'supportEmail', 'supportAddress', 'updatedAt'
+        ])
+        && isNonEmptyString(data.storeName, 1, 100)
+        && isOptionalString(data.storeDescription, 600)
+        && isOptionalString(data.logoUrl, 500000)
+        && isOptionalString(data.heroImageUrl, 500000)
+        && isNonEmptyString(data.currencySymbol, 1, 6)
+        && isOptionalString(data.announcementText, 300)
+        && data.codEnabled is bool
+        && data.onlinePaymentEnabled is bool
+        && isOptionalString(data.upiId, 120)
+        && isOptionalString(data.paymentGatewayName, 100)
+        && isOptionalString(data.paymentGatewayNote, 500)
+        && isNonNegNumber(data.freeShippingThreshold)
+        && isNonNegNumber(data.shippingFee)
+        && isOptionalString(data.supportPhone, 40)
+        && isOptionalString(data.supportEmail, 120)
+        && isOptionalString(data.supportAddress, 300)
+        && data.updatedAt == request.time;
+    }
+
+    function isValidAdminSettings(data) {
+      return data.keys().hasAll([
+          'appsScriptUrl', 'googleDriveFolderUrl', 'lastConnectionStatus',
+          'lastConnectionMessage', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'appsScriptUrl', 'googleDriveFolderUrl', 'lastConnectionTestAt',
+          'lastConnectionStatus', 'lastConnectionMessage', 'updatedAt'
+        ])
+        && isOptionalString(data.appsScriptUrl, 1000)
+        && isOptionalString(data.googleDriveFolderUrl, 1000)
+        && (!('lastConnectionTestAt' in data) || isOptionalString(data.lastConnectionTestAt, 64))
+        && data.lastConnectionStatus in ['Connected', 'Failed', 'Not Configured']
+        && isOptionalString(data.lastConnectionMessage, 500)
+        && data.updatedAt == request.time;
+    }
+
+    function isValidPublicProduct(data, productId) {
+      return data.keys().hasAll([
+          'id', 'productCode', 'name', 'category', 'images', 'originalPrice',
+          'sellingPrice', 'discountPercent', 'description', 'availableStock',
+          'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'productCode', 'name', 'category', 'images', 'originalPrice',
+          'sellingPrice', 'onlinePrice', 'discountPercent', 'description', 'availableStock',
+          'status', 'reviews', 'colorOptions', 'sizeOptions', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id == productId
+        && isNonEmptyString(data.productCode, 1, 64)
+        && isNonEmptyString(data.name, 2, 200)
+        && isNonEmptyString(data.category, 1, 100)
+        && isValidImageList(data.images)
+        && isNonNegNumber(data.originalPrice)
+        && isPosNumber(data.sellingPrice)
+        && (!('onlinePrice' in data) || isNonNegNumber(data.onlinePrice))
+        && isNonNegNumber(data.discountPercent)
+        && data.discountPercent <= 100
+        && isOptionalString(data.description, 4000)
+        && isNonNegNumber(data.availableStock)
+        && data.status in ['Active', 'Out of Stock']
+        && (!('reviews' in data) || isValidReviewList(data.reviews))
+        && (!('colorOptions' in data) || isValidColorOptionList(data.colorOptions))
+        && (!('sizeOptions' in data) || isValidSizeOptionList(data.sizeOptions))
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    function isValidAdminProduct(data, productId) {
+      return data.keys().hasAll([
+          'id', 'productCode', 'name', 'category', 'images', 'originalPrice',
+          'sellingPrice', 'discountPercent', 'sourcePrice', 'expectedProfit',
+          'sourceProductUrl', 'description', 'availableStock', 'status',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'productCode', 'name', 'category', 'images', 'originalPrice',
+          'sellingPrice', 'onlinePrice', 'discountPercent', 'sourcePrice', 'expectedProfit',
+          'sourceProductUrl', 'description', 'availableStock', 'status', 'reviews',
+          'colorOptions', 'sizeOptions', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id == productId
+        && isNonEmptyString(data.productCode, 1, 64)
+        && isNonEmptyString(data.name, 2, 200)
+        && isNonEmptyString(data.category, 1, 100)
+        && isValidImageList(data.images)
+        && isNonNegNumber(data.originalPrice)
+        && isPosNumber(data.sellingPrice)
+        && (!('onlinePrice' in data) || isNonNegNumber(data.onlinePrice))
+        && isNonNegNumber(data.discountPercent)
+        && data.discountPercent <= 100
+        && isNonNegNumber(data.sourcePrice)
+        && (data.expectedProfit is int || data.expectedProfit is float)
+        && isOptionalString(data.sourceProductUrl, 2000)
+        && isOptionalString(data.description, 4000)
+        && isNonNegNumber(data.availableStock)
+        && data.status in ['Active', 'Out of Stock', 'Hidden']
+        && (!('reviews' in data) || isValidReviewList(data.reviews))
+        && (!('colorOptions' in data) || isValidColorOptionList(data.colorOptions))
+        && (!('sizeOptions' in data) || isValidSizeOptionList(data.sizeOptions))
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    function isValidOrderShape(data, orderId) {
+      return data.keys().hasAll([
+          'orderId', 'timestamp', 'customerName', 'mobileNumber', 'email',
+          'fullAddress', 'city', 'state', 'pincode', 'landmark', 'items',
+          'productNames', 'productCodes', 'quantity', 'subtotal', 'shippingFee',
+          'totalAmount', 'sourceOrderAmount', 'expectedProfit', 'paymentMethod',
+          'paymentStatus', 'codAmount', 'orderStatus', 'appsScriptSyncStatus',
+          'resellerFieldsEnriched', 'trackingHash', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'orderId', 'timestamp', 'customerName', 'mobileNumber', 'email',
+          'fullAddress', 'city', 'state', 'pincode', 'landmark', 'items',
+          'productNames', 'productCodes', 'quantity', 'subtotal', 'shippingFee',
+          'totalAmount', 'sourceOrderAmount', 'expectedProfit', 'paymentMethod',
+          'paymentStatus', 'codAmount', 'orderStatus', 'paymentReference',
+          'paymentProofImage', 'appsScriptSyncStatus', 'appsScriptSyncMessage',
+          'resellerFieldsEnriched', 'trackingHash', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.orderId)
+        && data.orderId == orderId
+        && isNonEmptyString(data.timestamp, 10, 64)
+        && isNonEmptyString(data.customerName, 2, 120)
+        && isNonEmptyString(data.mobileNumber, 10, 20)
+        && isOptionalString(data.email, 120)
+        && isNonEmptyString(data.fullAddress, 6, 500)
+        && isNonEmptyString(data.city, 2, 100)
+        && isNonEmptyString(data.state, 2, 100)
+        && data.pincode is string && data.pincode.matches('^[0-9]{6}$')
+        && isOptionalString(data.landmark, 200)
+        && data.items is list && data.items.size() >= 1 && data.items.size() <= 50
+        && data.items[0] is map
+        && isNonEmptyString(data.items[0].productId, 1, 128)
+        && isPosNumber(data.items[0].quantity)
+        && isNonEmptyString(data.productNames, 1, 2000)
+        && isNonEmptyString(data.productCodes, 1, 1000)
+        && (data.quantity is int || data.quantity is float) && data.quantity >= 1
+        && isNonNegNumber(data.subtotal)
+        && isNonNegNumber(data.shippingFee)
+        && isPosNumber(data.totalAmount)
+        && isNonNegNumber(data.sourceOrderAmount)
+        && (data.expectedProfit is int || data.expectedProfit is float)
+        && data.paymentMethod in ['COD', 'Online']
+        && data.paymentStatus in ['Unpaid', 'Pending', 'Pending Verification', 'Paid', 'Refunded']
+        && isNonNegNumber(data.codAmount)
+        && data.orderStatus in ['New', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
+        && (!('paymentReference' in data) || isOptionalString(data.paymentReference, 100))
+        && (!('paymentProofImage' in data) || isOptionalString(data.paymentProofImage, 260000))
+        && data.appsScriptSyncStatus in ['Synced', 'Pending', 'Not Configured', 'Failed']
+        && (!('appsScriptSyncMessage' in data) || isOptionalString(data.appsScriptSyncMessage, 500))
+        && data.resellerFieldsEnriched is bool
+        && isValidSha256(data.trackingHash)
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    function isValidGuestOrderCreate(data, orderId) {
+      return isValidOrderShape(data, orderId)
+        && data.orderStatus == 'New'
+        && data.createdAt == request.time
+        && (
+          (data.paymentMethod == 'COD' && data.paymentStatus == 'Unpaid' && data.codAmount == data.totalAmount) ||
+          (
+            data.paymentMethod == 'Online'
+            && data.paymentStatus == 'Pending Verification'
+            && data.codAmount == 0
+            && 'paymentReference' in data
+            && data.paymentReference is string
+            && data.paymentReference.matches('^[0-9]{12}$')
+            && (!('paymentProofImage' in data) || isOptionalString(data.paymentProofImage, 260000))
+          )
+        );
+    }
+
+    function isValidOrderTracking(data) {
+      return data.keys().hasAll([
+          'orderId', 'timestamp', 'customerName', 'city', 'state', 'pincode',
+          'items', 'productNames', 'productCodes', 'quantity', 'totalAmount',
+          'paymentMethod', 'paymentStatus', 'codAmount', 'orderStatus',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'orderId', 'timestamp', 'customerName', 'city', 'state', 'pincode',
+          'items', 'productNames', 'productCodes', 'quantity', 'totalAmount',
+          'paymentMethod', 'paymentStatus', 'codAmount', 'orderStatus',
+          'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.orderId)
+        && isNonEmptyString(data.timestamp, 10, 64)
+        && isNonEmptyString(data.customerName, 1, 120)
+        && isNonEmptyString(data.city, 2, 100)
+        && isNonEmptyString(data.state, 2, 100)
+        && data.pincode is string && data.pincode.matches('^[0-9]{6}$')
+        && data.items is list && data.items.size() >= 1 && data.items.size() <= 50
+        && data.items[0] is map
+        && isOptionalString(data.productNames, 2000)
+        && isOptionalString(data.productCodes, 1000)
+        && (data.quantity is int || data.quantity is float) && data.quantity >= 1
+        && isPosNumber(data.totalAmount)
+        && data.paymentMethod in ['COD', 'Online']
+        && data.paymentStatus in ['Unpaid', 'Pending', 'Pending Verification', 'Paid', 'Refunded']
+        && isNonNegNumber(data.codAmount)
+        && data.orderStatus in ['New', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    function isValidSupportMessage(data, messageId) {
+      return data.keys().hasAll(['id', 'name', 'mobileOrEmail', 'message', 'createdAt'])
+        && data.keys().hasOnly(['id', 'name', 'mobileOrEmail', 'orderId', 'message', 'createdAt'])
+        && isValidId(data.id)
+        && data.id == messageId
+        && isNonEmptyString(data.name, 2, 120)
+        && isNonEmptyString(data.mobileOrEmail, 5, 120)
+        && (!('orderId' in data) || isOptionalString(data.orderId, 64))
+        && isNonEmptyString(data.message, 5, 2000)
+        && data.createdAt == request.time;
+    }
+
+    function isValidReturnRequest(data, trackingHash) {
+      return data.keys().hasAll([
+          'trackingHash', 'orderId', 'customerName', 'requestType', 'reason',
+          'details', 'proofImages', 'returnStatus', 'refundStatus', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'trackingHash', 'orderId', 'customerName', 'requestType', 'reason',
+          'details', 'customerUpiId', 'proofImages', 'returnStatus', 'refundStatus',
+          'meeshoReturnId', 'pickupNote', 'adminNote', 'createdAt', 'updatedAt'
+        ])
+        && isValidSha256(data.trackingHash)
+        && data.trackingHash == trackingHash
+        && isValidId(data.orderId)
+        && isNonEmptyString(data.customerName, 1, 120)
+        && data.requestType in ['Return & Refund', 'Replacement']
+        && isNonEmptyString(data.reason, 2, 120)
+        && isOptionalString(data.details, 1500)
+        && (!('customerUpiId' in data) || isOptionalString(data.customerUpiId, 120))
+        && data.proofImages is list
+        && data.proofImages.size() <= 3
+        && (data.proofImages.size() == 0 || (data.proofImages[0] is string && data.proofImages[0].size() <= 250000))
+        && data.returnStatus in ['Requested', 'Approved', 'Pickup Scheduled', 'Picked Up', 'Completed', 'Rejected']
+        && data.refundStatus in ['Not Applicable', 'Pending', 'Meesho Refund Received', 'Refunded to Customer']
+        && (!('meeshoReturnId' in data) || isOptionalString(data.meeshoReturnId, 120))
+        && (!('pickupNote' in data) || isOptionalString(data.pickupNote, 300))
+        && (!('adminNote' in data) || isOptionalString(data.adminNote, 500))
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    function isValidGuestReturnCreate(data, trackingHash) {
+      return isValidReturnRequest(data, trackingHash)
+        && data.returnStatus == 'Requested'
+        && data.refundStatus in ['Pending', 'Not Applicable']
+        && data.createdAt == request.time
+        && !('meeshoReturnId' in data)
+        && !('pickupNote' in data)
+        && !('adminNote' in data)
+        && exists(/databases/$(database)/documents/order_tracking/$(trackingHash))
+        && get(/databases/$(database)/documents/order_tracking/$(trackingHash)).data.orderStatus == 'Delivered'
+        && get(/databases/$(database)/documents/order_tracking/$(trackingHash)).data.orderId == data.orderId;
+    }
+
+    function isValidCancelRequest(data, trackingHash) {
+      return data.keys().hasAll([
+          'trackingHash', 'orderId', 'customerName', 'reason', 'note',
+          'cancelStatus', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'trackingHash', 'orderId', 'customerName', 'reason', 'note',
+          'customerUpiId', 'cancelStatus', 'adminNote', 'createdAt', 'updatedAt'
+        ])
+        && isValidSha256(data.trackingHash)
+        && data.trackingHash == trackingHash
+        && isValidId(data.orderId)
+        && isNonEmptyString(data.customerName, 1, 120)
+        && isNonEmptyString(data.reason, 2, 120)
+        && isOptionalString(data.note, 500)
+        && (!('customerUpiId' in data) || isOptionalString(data.customerUpiId, 120))
+        && data.cancelStatus in ['Requested', 'Approved', 'Rejected']
+        && (!('adminNote' in data) || isOptionalString(data.adminNote, 500))
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    function isValidGuestCancelCreate(data, trackingHash) {
+      return isValidCancelRequest(data, trackingHash)
+        && data.cancelStatus == 'Requested'
+        && data.createdAt == request.time
+        && !('adminNote' in data)
+        && exists(/databases/$(database)/documents/order_tracking/$(trackingHash))
+        && get(/databases/$(database)/documents/order_tracking/$(trackingHash)).data.orderStatus in ['New', 'Confirmed']
+        && get(/databases/$(database)/documents/order_tracking/$(trackingHash)).data.orderId == data.orderId;
+    }
+
+    // =========================================================
+    // Collection Match Blocks
+    // =========================================================
+
+    // Connection test doc
+    match /test/connection {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
+    // Admin roles lookup (prevent self-assigned privilege escalation)
+    match /admins/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list, write: if false;
+    }
+
+    // Public storefront settings (NO secrets or Apps Script URL)
+    match /public_store/{docId} {
+      allow get: if docId == 'config';
+      allow list: if false;
+      allow create: if isAdmin() && docId == 'config' && isValidPublicStore(incoming());
+      allow update: if isAdmin()
+        && docId == 'config'
+        && isValidPublicStore(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'storeName', 'storeDescription', 'logoUrl', 'heroImageUrl', 'currencySymbol', 'announcementText',
+          'codEnabled', 'onlinePaymentEnabled', 'upiId', 'paymentGatewayName',
+          'paymentGatewayNote', 'freeShippingThreshold', 'shippingFee',
+          'supportPhone', 'supportEmail', 'supportAddress', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    // Private admin-only settings (Apps Script URL, Drive folder)
+    match /admin_settings/{docId} {
+      allow get: if isAdmin() && docId == 'config';
+      allow list: if false;
+      allow create: if isAdmin() && docId == 'config' && isValidAdminSettings(incoming());
+      allow update: if isAdmin()
+        && docId == 'config'
+        && isValidAdminSettings(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'appsScriptUrl', 'googleDriveFolderUrl', 'lastConnectionTestAt',
+          'lastConnectionStatus', 'lastConnectionMessage', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    // Public customer-visible products (strictly non-Hidden, no sourcePrice/profit/URL)
+    match /public_products/{productId} {
+      allow get: if isValidId(productId) && (isAdmin() || (resource != null && resource.data.status in ['Active', 'Out of Stock']));
+      allow list: if resource.data.status in ['Active', 'Out of Stock'];
+      allow create: if isAdmin() && isValidId(productId) && isValidPublicProduct(incoming(), productId) && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(productId)
+        && isValidPublicProduct(incoming(), productId)
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'productCode', 'name', 'category', 'images', 'originalPrice',
+          'sellingPrice', 'onlinePrice', 'discountPercent', 'description', 'availableStock',
+          'status', 'reviews', 'colorOptions', 'sizeOptions', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    // Private reseller catalog (includes Hidden items, sourcePrice, expectedProfit, sourceProductUrl)
+    match /admin_products/{productId} {
+      allow get: if isAdmin() && isValidId(productId);
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(productId) && isValidAdminProduct(incoming(), productId) && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(productId)
+        && isValidAdminProduct(incoming(), productId)
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'productCode', 'name', 'category', 'images', 'originalPrice',
+          'sellingPrice', 'onlinePrice', 'discountPercent', 'sourcePrice', 'expectedProfit',
+          'sourceProductUrl', 'description', 'availableStock', 'status', 'reviews',
+          'colorOptions', 'sizeOptions', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    // Orders (PII & reseller profit protected: strictly Admin read/update/delete; validated guest create)
+    match /orders/{orderId} {
+      allow get: if isAdmin() && isValidId(orderId);
+      allow list: if isAdmin();
+      allow create: if isValidId(orderId) && isValidGuestOrderCreate(incoming(), orderId);
+      allow update: if isAdmin()
+        && isValidId(orderId)
+        && isValidOrderShape(incoming(), orderId)
+        && incoming().orderId == existing().orderId
+        && incoming().createdAt == existing().createdAt
+        && (
+          // Action: Update order/payment/sync status
+          incoming().diff(existing()).affectedKeys().hasOnly(['orderStatus', 'paymentStatus', 'appsScriptSyncStatus', 'appsScriptSyncMessage', 'updatedAt']) ||
+          // Action: Enrich reseller source costs & profit
+          incoming().diff(existing()).affectedKeys().hasOnly(['items', 'sourceOrderAmount', 'expectedProfit', 'resellerFieldsEnriched', 'appsScriptSyncStatus', 'appsScriptSyncMessage', 'updatedAt'])
+        );
+      allow delete: if isAdmin() && isValidId(orderId);
+    }
+
+    // Zero-PII order status snapshot keyed by SHA-256(orderId:mobile10)
+    match /order_tracking/{trackingHash} {
+      allow get: if isValidSha256(trackingHash);
+      allow list: if false;
+      allow create: if isValidSha256(trackingHash)
+        && isValidOrderTracking(incoming())
+        && incoming().orderStatus == 'New'
+        && incoming().paymentStatus in ['Unpaid', 'Pending Verification']
+        && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidSha256(trackingHash)
+        && isValidOrderTracking(incoming())
+        && incoming().orderId == existing().orderId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['orderStatus', 'paymentStatus', 'updatedAt']);
+      allow delete: if isAdmin() && isValidSha256(trackingHash);
+    }
+
+    // Support messages
+    match /support_messages/{messageId} {
+      allow get: if isAdmin() && isValidId(messageId);
+      allow list: if isAdmin();
+      allow create: if isValidId(messageId) && isValidSupportMessage(incoming(), messageId);
+      allow update, delete: if isAdmin() && isValidId(messageId);
+    }
+
+    // Customer return & replacement requests (verified Delivered orders only; keyed by trackingHash)
+    match /return_requests/{trackingHash} {
+      allow get: if isAdmin() || isValidSha256(trackingHash);
+      allow list: if isAdmin();
+      allow create: if isValidSha256(trackingHash) && isValidGuestReturnCreate(incoming(), trackingHash);
+      allow update: if isAdmin()
+        && isValidSha256(trackingHash)
+        && isValidReturnRequest(incoming(), trackingHash)
+        && incoming().trackingHash == existing().trackingHash
+        && incoming().orderId == existing().orderId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'returnStatus', 'refundStatus', 'meeshoReturnId', 'pickupNote', 'adminNote', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidSha256(trackingHash);
+    }
+
+    // Anti-replay UPI UTR lock keyed by SHA-256(12-digit UTR)
+    match /used_utrs/{utrHash} {
+      allow get: if isValidSha256(utrHash);
+      allow list: if false;
+      allow create: if isValidSha256(utrHash)
+        && incoming().keys().hasAll(['orderId', 'createdAt'])
+        && incoming().keys().hasOnly(['orderId', 'createdAt'])
+        && isValidId(incoming().orderId)
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidSha256(utrHash);
+    }
+
+    // Customer pre-dispatch cancellation requests (New/Confirmed orders only; keyed by trackingHash)
+    match /cancel_requests/{trackingHash} {
+      allow get: if isAdmin() || isValidSha256(trackingHash);
+      allow list: if isAdmin();
+      allow create: if isValidSha256(trackingHash) && isValidGuestCancelCreate(incoming(), trackingHash);
+      allow update: if isAdmin()
+        && isValidSha256(trackingHash)
+        && isValidCancelRequest(incoming(), trackingHash)
+        && incoming().trackingHash == existing().trackingHash
+        && incoming().orderId == existing().orderId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'cancelStatus', 'adminNote', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidSha256(trackingHash);
+    }
+  }
+}

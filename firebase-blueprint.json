@@ -1,0 +1,989 @@
+{
+  "entities": {
+    "PublicStoreConfig": {
+      "title": "PublicStoreConfig",
+      "description": "Public customer-facing store branding, shipping rules, and payment display configuration without any reseller or webhook secrets.",
+      "type": "object",
+      "properties": {
+        "storeName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Storefront display name"
+        },
+        "storeDescription": {
+          "type": "string",
+          "maxLength": 600,
+          "description": "Customer-facing store description shown on the Home page hero section"
+        },
+        "logoUrl": {
+          "type": "string",
+          "maxLength": 500000,
+          "description": "Store logo image URL or data URI"
+        },
+        "heroImageUrl": {
+          "type": "string",
+          "maxLength": 500000,
+          "description": "Optional storefront hero image URL or data URI"
+        },
+        "currencySymbol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 6,
+          "description": "Currency symbol"
+        },
+        "announcementText": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Top announcement bar text"
+        },
+        "codEnabled": {
+          "type": "boolean",
+          "description": "Whether Cash on Delivery is enabled"
+        },
+        "onlinePaymentEnabled": {
+          "type": "boolean",
+          "description": "Whether Online Payment is enabled"
+        },
+        "upiId": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional merchant UPI ID"
+        },
+        "paymentGatewayName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Display label for online payment"
+        },
+        "paymentGatewayNote": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Verification note for online payment"
+        },
+        "freeShippingThreshold": {
+          "type": "number",
+          "description": "Minimum subtotal for free shipping"
+        },
+        "shippingFee": {
+          "type": "number",
+          "description": "Standard shipping fee"
+        },
+        "supportPhone": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Customer support phone number"
+        },
+        "supportEmail": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Customer support email"
+        },
+        "supportAddress": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Dispatch/support address"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update"
+        }
+      },
+      "required": [
+        "storeName",
+        "storeDescription",
+        "logoUrl",
+        "heroImageUrl",
+        "currencySymbol",
+        "announcementText",
+        "codEnabled",
+        "onlinePaymentEnabled",
+        "upiId",
+        "paymentGatewayName",
+        "paymentGatewayNote",
+        "freeShippingThreshold",
+        "shippingFee",
+        "supportPhone",
+        "supportEmail",
+        "supportAddress",
+        "updatedAt"
+      ]
+    },
+    "AdminSettingsConfig": {
+      "title": "AdminSettingsConfig",
+      "description": "Private admin-only settings including Google Apps Script Web App URL and Google Drive folder link.",
+      "type": "object",
+      "properties": {
+        "appsScriptUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Private Google Apps Script Web App URL"
+        },
+        "googleDriveFolderUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Private Google Drive folder reference"
+        },
+        "lastConnectionTestAt": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "ISO timestamp of last Apps Script connection test"
+        },
+        "lastConnectionStatus": {
+          "type": "string",
+          "enum": ["Connected", "Failed", "Not Configured"],
+          "description": "Status of last Apps Script test"
+        },
+        "lastConnectionMessage": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Message from last Apps Script test"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of update"
+        }
+      },
+      "required": [
+        "appsScriptUrl",
+        "googleDriveFolderUrl",
+        "lastConnectionStatus",
+        "lastConnectionMessage",
+        "updatedAt"
+      ]
+    },
+    "PublicProduct": {
+      "title": "PublicProduct",
+      "description": "Customer-facing product catalog entry with selling price and internal product code only. Never contains Hidden products, source price, profit, or source URL.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Product ID"
+        },
+        "productCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Internal Product Code"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200,
+          "description": "Product title"
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Product category"
+        },
+        "images": {
+          "type": "array",
+          "description": "Up to 12 product image URLs"
+        },
+        "originalPrice": {
+          "type": "number",
+          "description": "Compare-at MRP"
+        },
+        "sellingPrice": {
+          "type": "number",
+          "description": "Customer selling price"
+        },
+        "onlinePrice": {
+          "type": "number",
+          "description": "Optional separate customer price when paying via Online / UPI"
+        },
+        "discountPercent": {
+          "type": "number",
+          "description": "Discount percentage"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000,
+          "description": "Customer-facing product description"
+        },
+        "availableStock": {
+          "type": "number",
+          "description": "Order quantity cap"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Active", "Out of Stock"],
+          "description": "Public visibility status"
+        },
+        "reviews": {
+          "type": "array",
+          "description": "Up to 20 admin-curated customer reviews (each with optional up to 4 photos)"
+        },
+        "colorOptions": {
+          "type": "array",
+          "description": "Up to 20 Color or Design variant options, optionally linked via imageIndex to product images"
+        },
+        "sizeOptions": {
+          "type": "array",
+          "description": "Up to 20 Size variant labels (e.g. S, M, L, XL, Free Size)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "productCode",
+        "name",
+        "category",
+        "images",
+        "originalPrice",
+        "sellingPrice",
+        "discountPercent",
+        "description",
+        "availableStock",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AdminProduct": {
+      "title": "AdminProduct",
+      "description": "Full reseller product catalog including Hidden products, supplier source price, expected profit, and internal supplier reference link.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Product ID"
+        },
+        "productCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Internal Product Code"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200,
+          "description": "Product name"
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Product category"
+        },
+        "images": {
+          "type": "array",
+          "description": "Up to 12 product image URLs"
+        },
+        "originalPrice": {
+          "type": "number",
+          "description": "Compare-at MRP"
+        },
+        "sellingPrice": {
+          "type": "number",
+          "description": "Customer selling price"
+        },
+        "onlinePrice": {
+          "type": "number",
+          "description": "Optional separate customer price when paying via Online / UPI"
+        },
+        "discountPercent": {
+          "type": "number",
+          "description": "Discount percentage"
+        },
+        "sourcePrice": {
+          "type": "number",
+          "description": "Admin-only supplier source price"
+        },
+        "expectedProfit": {
+          "type": "number",
+          "description": "Admin-only expected profit per unit"
+        },
+        "sourceProductUrl": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Admin-only supplier/Meesho product reference link"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000,
+          "description": "Product description"
+        },
+        "availableStock": {
+          "type": "number",
+          "description": "Order quantity cap"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Active", "Out of Stock", "Hidden"],
+          "description": "Product visibility status"
+        },
+        "reviews": {
+          "type": "array",
+          "description": "Up to 20 admin-curated customer reviews (each with optional up to 4 photos)"
+        },
+        "colorOptions": {
+          "type": "array",
+          "description": "Up to 20 Color or Design variant options, optionally linked via imageIndex to product images"
+        },
+        "sizeOptions": {
+          "type": "array",
+          "description": "Up to 20 Size variant labels (e.g. S, M, L, XL, Free Size)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "productCode",
+        "name",
+        "category",
+        "images",
+        "originalPrice",
+        "sellingPrice",
+        "discountPercent",
+        "sourcePrice",
+        "expectedProfit",
+        "sourceProductUrl",
+        "description",
+        "availableStock",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order record with delivery details, COD/Online payment state, and reseller fulfillment/profit metrics.",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique Order ID"
+        },
+        "timestamp": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Order ISO timestamp"
+        },
+        "customerName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Customer full name"
+        },
+        "mobileNumber": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 20,
+          "description": "Customer 10-digit mobile number"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional customer email"
+        },
+        "fullAddress": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 500,
+          "description": "Delivery street address"
+        },
+        "city": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Delivery city"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Delivery state"
+        },
+        "pincode": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 6,
+          "pattern": "^[0-9]{6}$",
+          "description": "6-digit delivery pincode"
+        },
+        "landmark": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional delivery landmark"
+        },
+        "items": {
+          "type": "array",
+          "description": "Ordered line items (1 to 50)"
+        },
+        "productNames": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "description": "Formatted summary of product names"
+        },
+        "productCodes": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "description": "Comma-separated internal product codes"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Total item quantity"
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Items subtotal"
+        },
+        "shippingFee": {
+          "type": "number",
+          "description": "Applied shipping fee"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total customer order amount"
+        },
+        "sourceOrderAmount": {
+          "type": "number",
+          "description": "Admin-only total supplier cost"
+        },
+        "expectedProfit": {
+          "type": "number",
+          "description": "Admin-only expected profit"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["COD", "Online"],
+          "description": "Selected payment method"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["Unpaid", "Pending", "Pending Verification", "Paid", "Refunded"],
+          "description": "Payment verification status"
+        },
+        "codAmount": {
+          "type": "number",
+          "description": "COD amount payable on delivery"
+        },
+        "orderStatus": {
+          "type": "string",
+          "enum": ["New", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"],
+          "description": "Order fulfillment status"
+        },
+        "paymentReference": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "12-digit UPI UTR reference (required for Online orders)"
+        },
+        "paymentProofImage": {
+          "type": "string",
+          "maxLength": 260000,
+          "description": "Compressed UPI payment receipt screenshot data URL (required for Online orders, Admin-only)"
+        },
+        "appsScriptSyncStatus": {
+          "type": "string",
+          "enum": ["Synced", "Pending", "Not Configured", "Failed"],
+          "description": "Google Sheets sync state"
+        },
+        "appsScriptSyncMessage": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Google Sheets sync message"
+        },
+        "resellerFieldsEnriched": {
+          "type": "boolean",
+          "description": "Whether admin reseller cost/profit fields have been attached"
+        },
+        "trackingHash": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "SHA-256 hash of orderId and mobile for sanitized tracking lookup"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "orderId",
+        "timestamp",
+        "customerName",
+        "mobileNumber",
+        "email",
+        "fullAddress",
+        "city",
+        "state",
+        "pincode",
+        "landmark",
+        "items",
+        "productNames",
+        "productCodes",
+        "quantity",
+        "subtotal",
+        "shippingFee",
+        "totalAmount",
+        "sourceOrderAmount",
+        "expectedProfit",
+        "paymentMethod",
+        "paymentStatus",
+        "codAmount",
+        "orderStatus",
+        "appsScriptSyncStatus",
+        "resellerFieldsEnriched",
+        "trackingHash",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "OrderTracking": {
+      "title": "OrderTracking",
+      "description": "Sanitized, zero-PII order status snapshot keyed by SHA-256(orderId:mobile10).",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Order ID"
+        },
+        "timestamp": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Order timestamp"
+        },
+        "customerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Customer first name or display name"
+        },
+        "city": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Destination city"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Destination state"
+        },
+        "pincode": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 6,
+          "pattern": "^[0-9]{6}$",
+          "description": "Destination pincode"
+        },
+        "items": {
+          "type": "array",
+          "description": "Public ordered line items"
+        },
+        "productNames": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Product summary"
+        },
+        "productCodes": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Product codes"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Item quantity"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total order amount"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["COD", "Online"],
+          "description": "Payment method"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["Unpaid", "Pending", "Pending Verification", "Paid", "Refunded"],
+          "description": "Payment status"
+        },
+        "codAmount": {
+          "type": "number",
+          "description": "COD payable amount"
+        },
+        "orderStatus": {
+          "type": "string",
+          "enum": ["New", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"],
+          "description": "Order status"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "orderId",
+        "timestamp",
+        "customerName",
+        "city",
+        "state",
+        "pincode",
+        "items",
+        "productNames",
+        "productCodes",
+        "quantity",
+        "totalAmount",
+        "paymentMethod",
+        "paymentStatus",
+        "codAmount",
+        "orderStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SupportMessage": {
+      "title": "SupportMessage",
+      "description": "Customer support inquiry submitted via storefront.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Support message ID"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Sender name"
+        },
+        "mobileOrEmail": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 120,
+          "description": "Sender phone or email"
+        },
+        "orderId": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Optional Order ID reference"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 2000,
+          "description": "Support message body"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        }
+      },
+      "required": ["id", "name", "mobileOrEmail", "message", "createdAt"]
+    },
+    "ReturnRequest": {
+      "title": "ReturnRequest",
+      "description": "Customer return or replacement request for a delivered order, keyed by SHA-256(orderId:mobile10) so customers can track pickup/refund status without exposing PII.",
+      "type": "object",
+      "properties": {
+        "trackingHash": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of orderId:mobile10"
+        },
+        "orderId": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Associated Order ID"
+        },
+        "customerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Customer display name"
+        },
+        "requestType": {
+          "type": "string",
+          "enum": ["Return & Refund", "Replacement"],
+          "description": "Whether customer wants refund or replacement"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Selected return or exchange reason"
+        },
+        "details": {
+          "type": "string",
+          "maxLength": 1500,
+          "description": "Customer issue description"
+        },
+        "customerUpiId": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional customer UPI ID for refund payout"
+        },
+        "proofImages": {
+          "type": "array",
+          "description": "Up to 3 compressed customer proof photos for Meesho return submission"
+        },
+        "returnStatus": {
+          "type": "string",
+          "enum": ["Requested", "Approved", "Pickup Scheduled", "Picked Up", "Completed", "Rejected"],
+          "description": "Current return or replacement workflow stage"
+        },
+        "refundStatus": {
+          "type": "string",
+          "enum": ["Not Applicable", "Pending", "Meesho Refund Received", "Refunded to Customer"],
+          "description": "Reseller-to-customer refund tracking status"
+        },
+        "meeshoReturnId": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Meesho return/AWB reference ID"
+        },
+        "pickupNote": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Reverse pickup schedule or courier note"
+        },
+        "adminNote": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Admin status update note visible to customer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "trackingHash",
+        "orderId",
+        "customerName",
+        "requestType",
+        "reason",
+        "details",
+        "proofImages",
+        "returnStatus",
+        "refundStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized admin role markers.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Admin email"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "UsedUtr": {
+      "title": "UsedUtr",
+      "description": "Zero-PII anti-replay lock keyed by SHA-256 of 12-digit UPI UTR to prevent duplicate UTR reuse.",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Order ID that claimed this UTR"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        }
+      },
+      "required": ["orderId", "createdAt"]
+    },
+    "CancelRequest": {
+      "title": "CancelRequest",
+      "description": "Customer pre-dispatch order cancellation request for New or Confirmed orders, keyed by SHA-256(orderId:mobile10).",
+      "type": "object",
+      "properties": {
+        "trackingHash": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of orderId:mobile10"
+        },
+        "orderId": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Associated Order ID"
+        },
+        "customerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Customer display name"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Selected cancellation reason"
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional additional note from customer"
+        },
+        "customerUpiId": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional customer UPI ID for refund if Online order"
+        },
+        "cancelStatus": {
+          "type": "string",
+          "enum": ["Requested", "Approved", "Rejected"],
+          "description": "Current cancellation review state"
+        },
+        "adminNote": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional admin response note visible to customer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "trackingHash",
+        "orderId",
+        "customerName",
+        "reason",
+        "note",
+        "cancelStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/public_store/{docId}": {
+      "schema": { "$ref": "#/entities/PublicStoreConfig" },
+      "description": "Public customer storefront configuration at /public_store/config"
+    },
+    "/admin_settings/{docId}": {
+      "schema": { "$ref": "#/entities/AdminSettingsConfig" },
+      "description": "Private admin Google Apps Script and Drive settings at /admin_settings/config"
+    },
+    "/public_products/{productId}": {
+      "schema": { "$ref": "#/entities/PublicProduct" },
+      "description": "Publicly visible non-Hidden products without source price or supplier URL"
+    },
+    "/admin_products/{productId}": {
+      "schema": { "$ref": "#/entities/AdminProduct" },
+      "description": "Private reseller product catalog with source prices, expected profit, and supplier URLs"
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Full customer orders with PII and reseller fulfillment details (Admin-only read/update/delete)"
+    },
+    "/order_tracking/{trackingHash}": {
+      "schema": { "$ref": "#/entities/OrderTracking" },
+      "description": "Zero-PII order status snapshot keyed by SHA-256(orderId:mobile10)"
+    },
+    "/return_requests/{trackingHash}": {
+      "schema": { "$ref": "#/entities/ReturnRequest" },
+      "description": "Customer return and replacement requests linked to delivered orders, keyed by SHA-256(orderId:mobile10)"
+    },
+    "/support_messages/{messageId}": {
+      "schema": { "$ref": "#/entities/SupportMessage" },
+      "description": "Customer support inquiries (Admin-only read/manage)"
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Additional admin user role lookup documents"
+    },
+    "/used_utrs/{utrHash}": {
+      "schema": { "$ref": "#/entities/UsedUtr" },
+      "description": "Anti-replay UPI UTR lock documents keyed by SHA-256(12-digit UTR)"
+    },
+    "/cancel_requests/{trackingHash}": {
+      "schema": { "$ref": "#/entities/CancelRequest" },
+      "description": "Customer pre-dispatch order cancellation requests keyed by SHA-256(orderId:mobile10)"
+    }
+  }
+}

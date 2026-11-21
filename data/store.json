@@ -1,0 +1,159 @@
+{
+  "settings": {
+    "storeName": "DealTrend",
+    "logoUrl": "/assets/aistudio/IMG_20260724_225713_a2747bae.jpg",
+    "heroImageUrl": "",
+    "currencySymbol": "₹",
+    "announcementText": "Smart Shopping. Daily Deals. · Free shipping above ₹1,499 · Cash on Delivery available",
+    "codEnabled": true,
+    "onlinePaymentEnabled": true,
+    "upiId": "",
+    "paymentGatewayName": "UPI / Online Payment",
+    "paymentGatewayNote": "Online payment requests remain in Pending Verification until confirmed by our payment gateway or verification desk.",
+    "freeShippingThreshold": 1499,
+    "shippingFee": 99,
+    "supportPhone": "+91 98200 41200",
+    "supportEmail": "care@dealtrend.in",
+    "supportAddress": "42 Indiranagar 100 Feet Road, Bengaluru 560038",
+    "appsScriptUrl": "",
+    "googleDriveFolderUrl": "",
+    "lastConnectionStatus": "Not Configured",
+    "lastConnectionMessage": "Paste your Google Apps Script Web App URL to enable Google Sheets sync.",
+    "storeDescription": "Explore curated daily deals and trending essentials at everyday value. Fast dispatch with Cash on Delivery available."
+  },
+  "adminAuth": {
+    "passwordHash": "1da86b1737924b4959a9b3903b585c8d900e41603e76e68a622005587aa1a0c932d786b159c28b6c543922412775c8cf91a04a417a175739b43df957372cabea",
+    "passwordSalt": "d09292eb8235c4be285e66aad28902af",
+    "sessionSecret": "Mohit123",
+    "isDefaultPasscode": false
+  },
+  "products": [
+    {
+      "id": "prod-kettle-101",
+      "productCode": "DT-KTL-101",
+      "name": "Matte Clay & Brass Pour-Over Kettle",
+      "category": "Kitchen & Brew",
+      "images": [
+        "/src/assets/images/product_ceramic_kettle_1794731350403.jpg",
+        "/src/assets/images/hero_storefront_1794731351452.jpg"
+      ],
+      "originalPrice": 3499,
+      "sellingPrice": 2799,
+      "discountPercent": 20,
+      "sourcePrice": 1850,
+      "expectedProfit": 949,
+      "sourceProductUrl": "https://www.meesho.com/search?q=gooseneck+pour+over+kettle",
+      "description": "Precision gooseneck pour-over kettle crafted from matte stoneware-finished steel with a brushed solid brass spout and balanced walnut handle. Engineered for slow, controlled extraction.",
+      "availableStock": 999,
+      "status": "Active",
+      "createdAt": "2026-11-15T08:49:17.909Z",
+      "updatedAt": "2026-11-15T08:49:17.909Z"
+    },
+    {
+      "id": "prod-speaker-204",
+      "productCode": "DT-AUD-204",
+      "name": "Walnut Acoustic Wireless Speaker",
+      "category": "Audio",
+      "images": [
+        "/src/assets/images/product_wireless_speaker_1794731351786.jpg",
+        "/src/assets/images/hero_storefront_1794731351452.jpg"
+      ],
+      "originalPrice": 6999,
+      "sellingPrice": 5499,
+      "discountPercent": 21,
+      "sourcePrice": 3890,
+      "expectedProfit": 1609,
+      "sourceProductUrl": "https://www.meesho.com/search?q=wooden+wireless+bluetooth+speaker",
+      "description": "Hand-finished walnut enclosure paired with an anodized aluminum grille. Features 18-hour USB-C battery life, warm room-filling acoustics, and low-latency Bluetooth 5.3.",
+      "availableStock": 999,
+      "status": "Active",
+      "createdAt": "2026-11-15T08:49:17.909Z",
+      "updatedAt": "2026-11-15T08:49:17.909Z"
+    },
+    {
+      "id": "prod-tote-302",
+      "productCode": "DT-BAG-302",
+      "name": "Vegetable-Tanned Leather Carry Tote",
+      "category": "Carry & Leather",
+      "images": [
+        "/src/assets/images/product_leather_tote_1794731351228.jpg"
+      ],
+      "originalPrice": 5299,
+      "sellingPrice": 4299,
+      "discountPercent": 19,
+      "sourcePrice": 2950,
+      "expectedProfit": 1349,
+      "sourceProductUrl": "https://www.meesho.com/search?q=leather+tote+handbag",
+      "description": "Structured full-grain leather tote with solid brass hardware, reinforced bridle handles, and a padded 15-inch laptop sleeve built for daily commute and travel.",
+      "availableStock": 999,
+      "status": "Active",
+      "createdAt": "2026-11-15T08:49:17.909Z",
+      "updatedAt": "2026-11-15T08:49:17.909Z"
+    },
+    {
+      "id": "prod-lamp-405",
+      "productCode": "DT-LMP-405",
+      "name": "Architectural Anodized Desk Lamp",
+      "category": "Lighting",
+      "images": [
+        "/src/assets/images/product_desk_lamp_1794731352150.jpg",
+        "/src/assets/images/hero_storefront_1794731351452.jpg"
+      ],
+      "originalPrice": 4499,
+      "sellingPrice": 3699,
+      "discountPercent": 18,
+      "sourcePrice": 2450,
+      "expectedProfit": 1249,
+      "sourceProductUrl": "https://www.meesho.com/search?q=modern+led+desk+lamp",
+      "description": "Precision-machined matte charcoal aluminum task lamp with dual-hinge articulation, high-CRI warm 3000K LED diffusion, and stepless touch dimming on the weighted base.",
+      "availableStock": 999,
+      "status": "Active",
+      "createdAt": "2026-11-15T08:49:17.909Z",
+      "updatedAt": "2026-11-15T08:49:17.909Z"
+    },
+    {
+      "id": "prod-linen-501",
+      "productCode": "DT-TEX-501",
+      "name": "Stonewashed Belgian Linen Throw",
+      "category": "Home Textiles",
+      "images": [
+        "/src/assets/images/product_linen_throw_1794731352816.jpg"
+      ],
+      "originalPrice": 2899,
+      "sellingPrice": 2299,
+      "discountPercent": 21,
+      "sourcePrice": 1420,
+      "expectedProfit": 879,
+      "sourceProductUrl": "https://www.meesho.com/search?q=cotton+linen+sofa+throw+blanket",
+      "description": "Woven from organic flax and enzyme stonewashed for immediate softness. Breathable year-round weight with hand-knotted fringe in oat and muted sage.",
+      "availableStock": 999,
+      "status": "Active",
+      "createdAt": "2026-11-15T08:49:17.909Z",
+      "updatedAt": "2026-11-15T08:49:17.909Z"
+    },
+    {
+      "id": "prod-brewset-108",
+      "productCode": "DT-BRW-108",
+      "name": "Studio Ceramic Dripper & Server Set",
+      "category": "Kitchen & Brew",
+      "images": [
+        "/src/assets/images/hero_storefront_1794731351452.jpg",
+        "/src/assets/images/product_ceramic_kettle_1794731350403.jpg"
+      ],
+      "originalPrice": 4199,
+      "sellingPrice": 3499,
+      "discountPercent": 17,
+      "sourcePrice": 2280,
+      "expectedProfit": 1219,
+      "sourceProductUrl": "https://www.meesho.com/search?q=ceramic+coffee+dripper+set",
+      "description": "Speckled stoneware dripper and matching carafe with walnut handle. Retains thermal stability throughout the brew cycle for clean, aromatic filter coffee.",
+      "availableStock": 999,
+      "status": "Active",
+      "createdAt": "2026-11-15T08:49:17.909Z",
+      "updatedAt": "2026-11-15T08:49:17.909Z"
+    }
+  ],
+  "orders": [],
+  "idempotency": [],
+  "supportMessages": []
+}

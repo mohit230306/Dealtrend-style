@@ -1,0 +1,6 @@
+{
+  "name": "Aurelia Goods Storefront",
+  "description": "Mobile-first e-commerce storefront with server-validated checkout, COD & online payment readiness, Google Sheets Apps Script integration, and secure Admin Panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
